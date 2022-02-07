@@ -64,7 +64,15 @@ class Network(object):
         """
         host_obs_dict = dict()
         for obs_variable in self.observable_dict:
-            pass
+            host_obs_dict[obs_variable] = self.__dict__[obs_variable]
+            
+        return host_obs_dict
+    
+    def _init_gamma(self):
+        """
+            initializes the gamma matrix 
+        """
+        return np.ones(self.degree_shape)*0.5
         
     def reset(self):
         """
@@ -74,7 +82,7 @@ class Network(object):
         self.current_time_step = 0
         
         # gamma update and settings
-        self.gamma = np.ones(self.degree_shape)*0.5
+        self.gamma = self._init_gamma()
         
         # define required state names
         self.main_state_name = ['S', 'H', 'I', 'L', 'R']
@@ -100,6 +108,11 @@ class Network(object):
             self.memory_S[:, :, self.current_time_step] = self.S
         
         print('Network {} has been reset.'.format(self.ID))
+        
+        # generate observation dictionary
+        host_obs_dict = self._generate_observations()
+        
+        return host_obs_dict
     
     def step(self, action, guest_obs_dict=None):
         """

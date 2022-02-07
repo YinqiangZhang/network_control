@@ -9,6 +9,7 @@ class Network(object):
         Implementation of single network and dynamics
         :param id: Network ID (must be set)
         :param param_path: hyperparameters path 
+        :param enable_memory: flag for recording the historical data
     '''
     def __init__(self, id=None, param_path=None, enable_memory=False):
         """
@@ -204,29 +205,32 @@ class Network(object):
             draws the current state of network
             only node state is considered now
         """
-        plt.figure(figsize=(8,6))
-        t = np.arange(0, (self.current_time_step+1)*self.dt, self.dt)
-        plt.plot(t, np.sum(self.memory_S, axis=(0,1)), color='b', linewidth=2, label='S')
-        plt.plot(t, np.sum(self.memory_H, axis=(0,1)), color='r', linewidth=2, label='H')
-        plt.plot(t, np.sum(self.memory_I, axis=(0,1)), color='g', linewidth=2, label='I')
-        plt.plot(t, np.sum(self.memory_L, axis=(0,1)), color='m', linewidth=2, label='L')
-        plt.plot(t, np.sum(self.memory_R, axis=(0,1)), color='orange', linewidth=2, label='R')
-        ax = plt.gca()
-        ax.spines['bottom'].set_linewidth(1.5)
-        ax.spines['left'].set_linewidth(1.5)
-        ax.spines['right'].set_linewidth(1.5)
-        ax.spines['top'].set_linewidth(1.5)
-        plt.yticks(fontsize=12)
-        plt.xticks(fontsize=12)
-        plt.grid(linestyle='-.')
-        plt.ylabel("State ratio", fontsize=12)
-        plt.xlabel("Time", fontsize=12)
-        plt.legend(fontsize=12, loc = 'upper right')
-        plt.ylim([0.0, 1.0])
-        plt.xlim([0.0, (self.current_time_step+1)*self.dt])
-        plt.tight_layout()
-        plt.savefig(os.path.join(save_path, 'network_{}.png'.format(self.ID)), dpi=600, format='png', bbox_inches='tight', pad_inches=0.05)
-        plt.close()
+        if self.enable_memory:
+            plt.figure(figsize=(8,6))
+            t = np.arange(0, (self.current_time_step+1)*self.dt, self.dt)
+            plt.plot(t, np.sum(self.memory_S, axis=(0,1)), color='b', linewidth=2, label='S')
+            plt.plot(t, np.sum(self.memory_H, axis=(0,1)), color='r', linewidth=2, label='H')
+            plt.plot(t, np.sum(self.memory_I, axis=(0,1)), color='g', linewidth=2, label='I')
+            plt.plot(t, np.sum(self.memory_L, axis=(0,1)), color='m', linewidth=2, label='L')
+            plt.plot(t, np.sum(self.memory_R, axis=(0,1)), color='orange', linewidth=2, label='R')
+            ax = plt.gca()
+            ax.spines['bottom'].set_linewidth(1.5)
+            ax.spines['left'].set_linewidth(1.5)
+            ax.spines['right'].set_linewidth(1.5)
+            ax.spines['top'].set_linewidth(1.5)
+            plt.yticks(fontsize=12)
+            plt.xticks(fontsize=12)
+            plt.grid(linestyle='-.')
+            plt.ylabel("State ratio", fontsize=12)
+            plt.xlabel("Time", fontsize=12)
+            plt.legend(fontsize=12, loc = 'upper right')
+            plt.ylim([0.0, 1.0])
+            plt.xlim([0.0, (self.current_time_step+1)*self.dt])
+            plt.tight_layout()
+            plt.savefig(os.path.join(save_path, 'network_{}.png'.format(self.ID)), dpi=600, format='png', bbox_inches='tight', pad_inches=0.05)
+            plt.close()
+        else:
+            print("Please enable the flag 'enable_memory' before the forward simulation of the network, thanks!")
         
 
 if __name__ == '__main__':

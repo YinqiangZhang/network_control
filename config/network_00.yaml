@@ -1,13 +1,13 @@
 network_configs:
-    T: 100
-    dt: 0.1
+    T: 400
+    dt: 0.4
     max_in_degree: 25
     max_out_degree: 25
     alpha: -0.1
     theta_I0: 0.03
     r_I: 0.3
-    r_L: 0.05
-    mu_I: 0.05
-    mu_L: 0.05
-    beta: 0.2
+    r_L: 0.0
+    mu_I: 0.01
+    mu_L: 0.0
+    beta: 0.05
     kappa: 1

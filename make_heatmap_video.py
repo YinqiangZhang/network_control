@@ -8,6 +8,7 @@ from matplotlib import cm
 import matplotlib.colors as mcolors
 from moviepy.editor import VideoClip
 from moviepy.video.io.bindings import mplfig_to_npimage
+import seaborn as sns
 
 config = {
     "font.family":'serif',
@@ -17,10 +18,9 @@ config = {
 }
 rcParams.update(config)
 
-use_chinese = True
-figsize = (8, 6)
-fig = plt.figure(figsize=figsize)
-ax = fig.subplots(1,1)
+# figsize = (8, 6)
+# fig = plt.figure(figsize=figsize)
+# ax = fig.subplots(1,1)
 fps = 40 
 stick_font_size = 20
 font_legend = {'family': 'Times New Roman', 'weight': 'normal', 'size': stick_font_size}
@@ -37,33 +37,52 @@ memory_I = data_dict['memory_I']
 memory_H = data_dict['memory_H']
 memory_R = data_dict['memory_R']
 
-def make_frame(t):
-    language = 'chinese' if use_chinese is True else 'english'
+def make_frame(t, ax, state):
     ax.clear()
-    X = np.arange(memory_shape[1])
-    Y = np.arange(memory_shape[0])
-    X, Y = np.meshgrid(X, Y)
-    S = memory_S[:, :, int(t*fps)] * 500000 + 1
-    H = memory_H[:, :, int(t*fps)] * 500000 + 1
-    I = memory_I[:, :, int(t*fps)] * 500000 + 1
-    R = memory_R[:, :, int(t*fps)] * 500000 + 1
+    use_all_degree = False
+    if use_all_degree is not True:
+        X = np.arange(150)
+        Y = np.arange(150)
+        X, Y = np.meshgrid(X, Y)
+        base = memory_S[:150, :150, 0]
+        node_num = 500000
+        S = memory_S[:150, :150, int(t*fps)+1] 
+        H = memory_H[:150, :150, int(t*fps)+1] 
+        I = memory_I[:150, :150, int(t*fps)+1] 
+        R = base - S - H - I
+        R[R<0] = 0.0
+        R = R[:150, :150]
+    else:
+        X = np.arange(memory_S.shape[1])
+        Y = np.arange(memory_S.shape[0])
+        X, Y = np.meshgrid(X, Y)
+        base = memory_S[:, :, 0]
+        node_num = 500000
+        S = memory_S[:, :, int(t*fps)+1] 
+        H = memory_H[:, :, int(t*fps)+1] 
+        I = memory_I[:, :, int(t*fps)+1] 
+        R = base - S - H - I
+        R[R<0] = 0.0
+    # levels = np.arange(0, 1.3, step=0.1)
     norm = mcolors.LogNorm(vmin=1, vmax=1000)
-    # ax.pcolormesh(X, Y, S, cmap=cm.coolwarm, alpha = 1.0,
-    #             norm=norm, 
-    #             shading='nearest', 
-    #             rasterized=True)
-    # ax.pcolormesh(X, Y, H, cmap=cm.coolwarm, alpha=1.0,
-    #             norm=norm, 
-    #             shading='nearest', 
-    #             rasterized=True)
-    # ax.pcolormesh(X, Y, I, cmap=cm.coolwarm, alpha=1.0,
-    #             norm=norm, 
-    #             shading='nearest', 
-    #             rasterized=True)
-    ax.pcolormesh(X, Y, R, cmap=cm.coolwarm, alpha=1.0,
-                norm=norm, 
-                shading='nearest', 
-                rasterized=True)
+    if state == 0:
+        # S_ratio = np.divide(S, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
+        # ax.contourf(X, Y, S_ratio, levels=levels, cmap=cm.Greens, alpha=1.0, edgecolor='k', linewidth=0.1)
+        ax.pcolormesh(X, Y, S*node_num+1, cmap=cm.Greens, alpha = 1.0, norm=norm, rasterized=True)
+    elif state == 1:
+        # H_ratio = np.divide(H, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
+        # ax.contourf(X, Y, H_ratio, levels=levels, cmap=cm.Blues, alpha=1.0, edgecolor='k', linewidth=0.1)
+        ax.pcolormesh(X, Y, H*node_num+1, cmap=cm.Blues, alpha=1.0, norm=norm, rasterized=True)
+    elif state == 2:
+        # I_ratio = np.divide(I, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
+        # ax.contourf(X, Y, I_ratio, levels=levels, cmap=cm.Reds, alpha=1.0, edgecolor='k', linewidth=0.1)
+        ax.pcolormesh(X, Y, I*node_num+1, cmap=cm.Reds, alpha=1.0, norm=norm, rasterized=True)
+    else:
+        # R_ratio = np.divide(R, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
+        # ax.contourf(X, Y, R_ratio, levels=levels, cmap=cm.Oranges, alpha=1.0, edgecolor='k', linewidth=0.1)
+        ax.pcolormesh(X, Y, R*node_num+1, cmap=cm.Oranges, alpha=1.0, norm=norm, rasterized=True)
+
+    # ax.legend(loc='upper right')
     ax.spines['bottom'].set_linewidth(1.0)
     ax.spines['left'].set_linewidth(1.0)
     ax.spines['right'].set_linewidth(1.0)
@@ -72,16 +91,36 @@ def make_frame(t):
     plt.xticks(fontproperties = 'Times New Roman', size = stick_font_size)
     plt.ylim([0.0, S.shape[0]-1])
     plt.xlim([0.0, S.shape[1]-1])
-    if language == 'chinese':
-        ax.set_xlabel('入度数')
-        ax.set_ylabel('出度数')
-        # ax.set_title('仿真步长：{}'.format(int(t*fps)))
-    else:
-        ax.set_xlabel('In-degree')
-        ax.set_ylabel('Out-degree')   
-        # ax.set_title('Time step {}'.format(int(t*fps)))
-    plt.tight_layout()
+    ax.set_xlabel('入度数')
+    ax.set_ylabel('出度数')
+    plt.tight_layout(pad=1.1)
     return mplfig_to_npimage(fig)
     
-animation = VideoClip(make_frame, duration=10)
-animation.write_gif(os.path.join(figure_folder, 'video', 'R_heatmap.gif'), fps=fps)
+# animation = VideoClip(make_frame, duration=10)
+# animation.write_gif(os.path.join(figure_folder, 'video', 'S_heatmap.gif'), fps=fps)
+
+
+if __name__ == "__main__":
+    figsize = (8, 6)
+    fig = plt.figure(figsize=figsize)
+    time_steps = [0, 0.5, 1, 1.5]
+    state_indices = ['S', 'H', 'I', 'R']
+    state_types = {'S': [0, 1, 2, 3], 
+                  'H': [0, 1, 4, 6],
+                  'I': [0, 1, 4, 6],
+                  'R': [0, 1, 4, 6]}
+    for state_type, time_steps in state_types.items():
+        for time_step in time_steps:
+            fig = plt.figure(figsize=(8, 6))
+            ax = fig.subplots(1, 1)
+            make_frame(time_step, ax=ax, state=state_indices.index(state_type))
+            plt.savefig(os.path.join(figure_folder, 'pdf', 
+                                     'heatmap_{}_{}.pdf'.format(state_type,time_step)), dpi=600, 
+                            format='pdf', bbox_inches='tight', pad_inches=0.05)
+            plt.savefig(os.path.join(figure_folder, 'png', 
+                                     'heatmap_{}_{}.png'.format(state_type,time_step)), dpi=600, 
+                            format='png', bbox_inches='tight', pad_inches=0.05)
+            plt.close()
+        
+
+

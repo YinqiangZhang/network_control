@@ -40,27 +40,28 @@ memory_R = data_dict['memory_R']
 def make_frame(t, ax, state):
     ax.clear()
     use_all_degree = False
+    clip_range = 100
     if use_all_degree is not True:
-        X = np.arange(150)
-        Y = np.arange(150)
+        X = np.arange(clip_range)
+        Y = np.arange(clip_range)
         X, Y = np.meshgrid(X, Y)
-        base = memory_S[:150, :150, 0]
+        base = memory_S[:clip_range, :clip_range, 0]
         node_num = 500000
-        S = memory_S[:150, :150, int(t*fps)+1] 
-        H = memory_H[:150, :150, int(t*fps)+1] 
-        I = memory_I[:150, :150, int(t*fps)+1] 
+        S = memory_S[:clip_range, :clip_range, int(t*fps)] 
+        H = memory_H[:clip_range, :clip_range, int(t*fps)] 
+        I = memory_I[:clip_range, :clip_range, int(t*fps)] 
         R = base - S - H - I
         R[R<0] = 0.0
-        R = R[:150, :150]
+        R = R[:clip_range, :clip_range]
     else:
         X = np.arange(memory_S.shape[1])
         Y = np.arange(memory_S.shape[0])
         X, Y = np.meshgrid(X, Y)
         base = memory_S[:, :, 0]
         node_num = 500000
-        S = memory_S[:, :, int(t*fps)+1] 
-        H = memory_H[:, :, int(t*fps)+1] 
-        I = memory_I[:, :, int(t*fps)+1] 
+        S = memory_S[:, :, int(t*fps)] 
+        H = memory_H[:, :, int(t*fps)] 
+        I = memory_I[:, :, int(t*fps)] 
         R = base - S - H - I
         R[R<0] = 0.0
     # levels = np.arange(0, 1.3, step=0.1)
@@ -68,19 +69,19 @@ def make_frame(t, ax, state):
     if state == 0:
         # S_ratio = np.divide(S, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
         # ax.contourf(X, Y, S_ratio, levels=levels, cmap=cm.Greens, alpha=1.0, edgecolor='k', linewidth=0.1)
-        ax.pcolormesh(X, Y, S*node_num+1, cmap=cm.Greens, alpha = 1.0, norm=norm, rasterized=True)
+        ax.pcolormesh(X, Y, S*node_num+1, cmap=cm.jet, alpha = 1.0, norm=norm, rasterized=True)
     elif state == 1:
         # H_ratio = np.divide(H, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
         # ax.contourf(X, Y, H_ratio, levels=levels, cmap=cm.Blues, alpha=1.0, edgecolor='k', linewidth=0.1)
-        ax.pcolormesh(X, Y, H*node_num+1, cmap=cm.Blues, alpha=1.0, norm=norm, rasterized=True)
+        ax.pcolormesh(X, Y, H*node_num+1, cmap=cm.jet, alpha=1.0, norm=norm, rasterized=True)
     elif state == 2:
         # I_ratio = np.divide(I, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
         # ax.contourf(X, Y, I_ratio, levels=levels, cmap=cm.Reds, alpha=1.0, edgecolor='k', linewidth=0.1)
-        ax.pcolormesh(X, Y, I*node_num+1, cmap=cm.Reds, alpha=1.0, norm=norm, rasterized=True)
+        ax.pcolormesh(X, Y, I*node_num+1, cmap=cm.jet, alpha=1.0, norm=norm, rasterized=True)
     else:
         # R_ratio = np.divide(R, base, out=np.zeros_like(base), where=np.not_equal(base, 0))
         # ax.contourf(X, Y, R_ratio, levels=levels, cmap=cm.Oranges, alpha=1.0, edgecolor='k', linewidth=0.1)
-        ax.pcolormesh(X, Y, R*node_num+1, cmap=cm.Oranges, alpha=1.0, norm=norm, rasterized=True)
+        ax.pcolormesh(X, Y, R*node_num+1, cmap=cm.jet, alpha=1.0, norm=norm, rasterized=True)
 
     # ax.legend(loc='upper right')
     ax.spines['bottom'].set_linewidth(1.0)
@@ -91,8 +92,8 @@ def make_frame(t, ax, state):
     plt.xticks(fontproperties = 'Times New Roman', size = stick_font_size)
     plt.ylim([0.0, S.shape[0]-1])
     plt.xlim([0.0, S.shape[1]-1])
-    ax.set_xlabel('入度数')
-    ax.set_ylabel('出度数')
+    ax.set_xlabel('出度数')
+    ax.set_ylabel('入度数')
     plt.tight_layout(pad=1.1)
     return mplfig_to_npimage(fig)
     
@@ -103,12 +104,11 @@ def make_frame(t, ax, state):
 if __name__ == "__main__":
     figsize = (8, 6)
     fig = plt.figure(figsize=figsize)
-    time_steps = [0, 0.5, 1, 1.5]
     state_indices = ['S', 'H', 'I', 'R']
-    state_types = {'S': [0, 1, 2, 3], 
-                  'H': [0, 1, 4, 6],
-                  'I': [0, 1, 4, 6],
-                  'R': [0, 1, 4, 6]}
+    state_types = {'S': [0, 0.5, 1, 2, 8], 
+                  'H': [0, 0.025, 0.5, 2, 4, 6],
+                  'I': [0, 1, 4, 10, 14],
+                  'R': [0, 1, 4, 10]}
     for state_type, time_steps in state_types.items():
         for time_step in time_steps:
             fig = plt.figure(figsize=(8, 6))

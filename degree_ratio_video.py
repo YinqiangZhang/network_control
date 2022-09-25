@@ -16,9 +16,6 @@ config = {
 }
 rcParams.update(config)
 
-figsize = (8, 6)
-fig = plt.figure(figsize=figsize)
-ax = fig.subplots(1,1)
 fps = 40 
 stick_font_size = 20
 font_legend = {'family': 'Times New Roman', 'weight': 'normal', 'size': stick_font_size}
@@ -36,13 +33,11 @@ memory_H = data_dict['memory_H']
 memory_R = data_dict['memory_R']
 colors = [u'#ee854a', u'#4878d0', u'#d65f5f', u'#6acc64']
 
-reduced_axis = 0
-
 # moving average kernel
-kernel_size = 8
+kernel_size = 20
 kernel = np.ones(kernel_size) / kernel_size
 
-def make_frame(t):
+def make_frame(t, ax, reduced_axis):
     ax.clear()
     X = np.arange(memory_shape[1])
     Y = np.arange(memory_shape[0])
@@ -72,7 +67,7 @@ def make_frame(t):
              labels=data_dict.keys(), alpha=0.65, colors=colors, edgecolor = 'k', linewidth=0.4)
     plt.yticks(fontproperties = 'Times New Roman', size = stick_font_size)
     plt.xticks(fontproperties = 'Times New Roman', size = stick_font_size)
-    plt.xlim([kernel_size-4, S.shape[0]])
+    plt.xlim([kernel_size-15, S.shape[0]])
     plt.ylim([0, 1])
     ax.spines['bottom'].set_linewidth(1.0)
     ax.spines['left'].set_linewidth(1.0)
@@ -88,7 +83,26 @@ def make_frame(t):
     plt.tight_layout(pad=1.1)
     return mplfig_to_npimage(fig)
 
-degree_type = 'in' if reduced_axis == 1 else 'out'
-video_name = 'node_ratio_{}_degree.gif'.format(degree_type)
-animation = VideoClip(make_frame, duration=10)
-animation.write_gif(os.path.join(figure_folder, 'video', video_name), fps=fps)
+# degree_type = 'in' if reduced_axis == 1 else 'out'
+# video_name = 'node_ratio_{}_degree.gif'.format(degree_type)
+# animation = VideoClip(make_frame, duration=10)
+# animation.write_gif(os.path.join(figure_folder, 'video', video_name), fps=fps)
+
+
+if __name__ == "__main__":
+    figsize = (8, 6)
+    reduced_axis = 0
+    degree_type = 'in' if reduced_axis == 1 else 'out'
+    fig = plt.figure(figsize=figsize)
+    time_steps = [0, 0.5, 1, 2, 4, 8]
+    for time_step in time_steps:
+        fig = plt.figure(figsize=(8, 6))
+        ax = fig.subplots(1, 1)
+        make_frame(time_step, ax, reduced_axis)
+        plt.savefig(os.path.join(figure_folder, 'pdf', 
+                                    'degree_ratio_{}_{}.pdf'.format(degree_type, time_step)), dpi=600, 
+                        format='pdf', bbox_inches='tight', pad_inches=0.05)
+        plt.savefig(os.path.join(figure_folder, 'png', 
+                                    'degree_ratio_{}_{}.png'.format(degree_type, time_step)), dpi=600, 
+                        format='png', bbox_inches='tight', pad_inches=0.05)
+        plt.close()
